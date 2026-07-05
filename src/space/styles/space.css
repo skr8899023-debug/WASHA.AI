@@ -22,6 +22,7 @@
   position: fixed;
   inset: 0;
   overflow: hidden;
+  color-scheme: dark;
   background: var(--sp-bg);
   color: var(--sp-text);
   font-family: var(--sp-font);

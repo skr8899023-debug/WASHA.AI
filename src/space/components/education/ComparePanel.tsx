@@ -9,15 +9,18 @@ import {
 } from "../../utils/formatArabicNumber";
 import type { CelestialBody } from "../../utils/astronomyTypes";
 
-/** Bodies that have at least one numeric metric worth comparing. */
-const COMPARABLE = CELESTIAL_BODIES.filter(
-  (b) =>
-    b.metrics &&
+/** True when a body has at least one numeric metric worth comparing. */
+export function isComparableBody(b: CelestialBody): boolean {
+  return (
+    !!b.metrics &&
     (b.metrics.diameterKm !== undefined ||
       b.metrics.distanceFromSunAU !== undefined ||
       b.metrics.dayLengthHours !== undefined ||
-      b.metrics.yearLengthDays !== undefined),
-);
+      b.metrics.yearLengthDays !== undefined)
+  );
+}
+
+const COMPARABLE = CELESTIAL_BODIES.filter(isComparableBody);
 
 interface MetricDef {
   key: string;

@@ -1,6 +1,33 @@
 # PROGRESS — أطلس الفضاء التفاعلي
 
-## Status: Core experience complete ✅
+## Status: Core experience complete ✅ · Independent QA pass complete ✅
+
+## QA review (2026-07-05)
+Reviewed code + UI against SPEC criteria (scientific accuracy, RTL quality, 3D visual
+direction, selection/focus/reset, journeys/quiz/compare, mid-device performance,
+build/typecheck). 7 real defects found and fixed:
+
+1. **Science** — Moon rotation listed as 708.7 h (lunar *solar* day) under the label
+   "مدة الدوران حول المحور"; corrected to 655.7 h (٢٧٫٣ يومًا, sidereal rotation,
+   consistent with the tidal-locking fact). `data/celestialBodies.ts`
+2. **Science** — Halley's comet showed a flat "البعد عن الشمس: ١٧٫٨ و.ف." (semi-major
+   axis) — misleading for an e≈0.97 orbit. Metric removed; accurate perihelion/aphelion
+   quick fact added (أقل من ١ و.ف. حتى نحو ٣٥ و.ف.). `data/celestialBodies.ts`
+3. **Science/visual** — Exoplanet host star was inside the planet's spin group, so the
+   star visibly orbited its planet. Moved outside the spin group. `CelestialBodyMesh.tsx`
+4. **UX** — "قارن هذا الجرم" appeared for bodies excluded from the compare selects
+   (مجرة/ثقب أسود/سديم/كوكب خارجي/فوياجر), desyncing the dropdowns. Button now gated by
+   shared `isComparableBody()`. `ComparePanel.tsx`, `KnowledgePanel.tsx`
+5. **RTL/dark UX** — global `color-scheme: light` meta made native select dropdowns and
+   scrollbars render light inside the dark app; `.space-app { color-scheme: dark }` added.
+6. **Robustness** — moon→earth "related body" relation was hardcoded; now derived from
+   `visual.parentId` data. `CelestialBodyMesh.tsx`
+7. **UX** — clicking the already-active mode button cleared the selection and reset the
+   camera; now a no-op. `useSpaceStore.ts`
+
+Re-verification after fixes: `npm run build` clean; Playwright flow re-run with two new
+assertions — direct 3D canvas click on the Sun opens its panel (ok), compare button hidden
+for الثقب الأسود (ok). Zero console errors across the full flow.
 
 ## What was built
 - **Root route `/`** now serves the Arabic-first 3D space atlas (WASHA studio unchanged

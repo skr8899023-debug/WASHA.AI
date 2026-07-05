@@ -7,6 +7,7 @@ import { bodyRadius, orbitRadius } from "../../utils/scale";
 import { useSpaceStore } from "../../state/useSpaceStore";
 import { createBodyTexture, createGlowTexture } from "./proceduralTextures";
 import { getBodyObject, registerBodyObject, unregisterBodyObject } from "./bodyRegistry";
+import { BODY_BY_ID } from "../../data/celestialBodies";
 
 const UP = new THREE.Vector3(0, 1, 0);
 const tmpVec = new THREE.Vector3();
@@ -32,9 +33,11 @@ export function CelestialBodyMesh({ body }: Props) {
 
   const radius = bodyRadius(visual, scaleMode);
   const isSelected = selectedBodyId === body.id;
+  // keep a selected body's parent lit, and a selected parent's satellites lit
   const isRelated =
     selectedBodyId !== null &&
-    (visual.parentId === selectedBodyId || getRelatedParent(selectedBodyId) === body.id);
+    (visual.parentId === selectedBodyId ||
+      BODY_BY_ID[selectedBodyId]?.visual.parentId === body.id);
   const isDimmed = selectedBodyId !== null && !isSelected && !isRelated;
 
   useEffect(() => {
@@ -135,6 +138,9 @@ export function CelestialBodyMesh({ body }: Props) {
         <meshBasicMaterial />
       </mesh>
 
+      {/* host star sits outside the spin group so it doesn't orbit its planet */}
+      {visual.kind === "exoplanet" && <HostStar />}
+
       <group ref={spinRef} rotation={[0, 0, THREE.MathUtils.degToRad(visual.tiltDeg ?? 0)]}>
         <BodyVisual body={body} radius={radius} />
         {visual.kind === "comet" && (
@@ -166,12 +172,6 @@ export function CelestialBodyMesh({ body }: Props) {
       )}
     </group>
   );
-}
-
-/** Selected body's parent id (so a selected moon keeps its planet lit). */
-function getRelatedParent(selectedId: string): string | undefined {
-  // lazy import to avoid a data->three->data cycle at module init
-  return selectedId === "moon" ? "earth" : undefined;
 }
 
 function BodyVisual({ body, radius }: { body: CelestialBody; radius: number }) {
@@ -230,11 +230,6 @@ function PlanetVisual({ body, radius }: { body: CelestialBody; radius: number })
     () => (visual.rings ? createGlowTexture(visual.rings.color, 0.55) : null),
     [visual.rings],
   );
-  const dimStar = visual.kind === "exoplanet";
-  const dimStarGlow = useMemo(
-    () => (dimStar ? createGlowTexture("#ffd9a0", 0.85) : null),
-    [dimStar],
-  );
 
   return (
     <group>
@@ -258,17 +253,22 @@ function PlanetVisual({ body, radius }: { body: CelestialBody; radius: number })
           />
         </mesh>
       )}
-      {dimStar && dimStarGlow && (
-        <group position={[3, 1.1, -1.5]}>
-          <mesh>
-            <sphereGeometry args={[0.35, 20, 20]} />
-            <meshBasicMaterial color="#ffddad" toneMapped={false} />
-          </mesh>
-          <sprite scale={[2.4, 2.4, 1]}>
-            <spriteMaterial map={dimStarGlow} blending={THREE.AdditiveBlending} depthWrite={false} opacity={0.8} />
-          </sprite>
-        </group>
-      )}
+    </group>
+  );
+}
+
+/** Distant dim host star for the exoplanet exhibit. */
+function HostStar() {
+  const glow = useMemo(() => createGlowTexture("#ffd9a0", 0.85), []);
+  return (
+    <group position={[3, 1.1, -1.5]}>
+      <mesh>
+        <sphereGeometry args={[0.35, 20, 20]} />
+        <meshBasicMaterial color="#ffddad" toneMapped={false} />
+      </mesh>
+      <sprite scale={[2.4, 2.4, 1]}>
+        <spriteMaterial map={glow} blending={THREE.AdditiveBlending} depthWrite={false} opacity={0.8} />
+      </sprite>
     </group>
   );
 }

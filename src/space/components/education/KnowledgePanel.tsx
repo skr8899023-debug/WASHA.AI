@@ -5,6 +5,7 @@ import { useSpaceStore } from "../../state/useSpaceStore";
 import { formatArabicCompact, formatArabicNumber, formatDaysArabic, formatHoursArabic } from "../../utils/formatArabicNumber";
 import { SourceBadge } from "./SourceBadge";
 import { QuizInline } from "./QuizInline";
+import { isComparableBody } from "./ComparePanel";
 
 export function KnowledgePanel() {
   const selectedBodyId = useSpaceStore((s) => s.selectedBodyId);
@@ -129,18 +130,20 @@ export function KnowledgePanel() {
           <SourceBadge sourceNotes={body.sourceNotes} lastReviewed={body.lastReviewed} />
         </section>
 
-        <div className="kp-actions">
-          <button
-            type="button"
-            className="btn secondary"
-            onClick={() => {
-              setCompare("a", body.id);
-              setCompareOpen(true);
-            }}
-          >
-            ⚖ قارن هذا الجرم
-          </button>
-        </div>
+        {isComparableBody(body) && (
+          <div className="kp-actions">
+            <button
+              type="button"
+              className="btn secondary"
+              onClick={() => {
+                setCompare("a", body.id);
+                setCompareOpen(true);
+              }}
+            >
+              ⚖ قارن هذا الجرم
+            </button>
+          </div>
+        )}
       </div>
     </aside>
   );

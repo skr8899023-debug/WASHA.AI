@@ -245,7 +245,7 @@ export const CELESTIAL_BODIES: CelestialBody[] = [
     metrics: {
       diameterKm: 3475,
       distanceFromSunAU: 1,
-      dayLengthHours: 708.7,
+      dayLengthHours: 655.7,
       tempNote: "من نحو -١٥٠° ليلًا إلى ١٢٠° نهارًا تقريبًا.",
       surfaceNote: "صخري مغطى بالفوهات وغبار الريغوليث.",
     },
@@ -694,6 +694,7 @@ export const CELESTIAL_BODIES: CelestialBody[] = [
     importance: "المذنبات كبسولات زمنية متجمدة من مواد النظام الشمسي الأولى، وقد تكون ساهمت في جلب الماء إلى الأرض.",
     quickFacts: [
       "نواته صغيرة: نحو ١٥ × ٨ كيلومترات.",
+      "مداره شديد الاستطالة: يقترب من الشمس إلى أقل من وحدة فلكية، ثم يبتعد إلى نحو ٣٥ وحدة فلكية.",
       "يزور النظام الشمسي الداخلي كل ٧٥–٧٩ سنة؛ عودته القادمة نحو عام ٢٠٦١.",
       "ذيل المذنب يتجه دائمًا بعيدًا عن الشمس، لا خلف حركته.",
       "شوهد ووثّق منذ آلاف السنين.",
@@ -714,7 +715,6 @@ export const CELESTIAL_BODIES: CelestialBody[] = [
       },
     ],
     metrics: {
-      distanceFromSunAU: 17.8,
       yearLengthDays: 27759,
       surfaceNote: "نواة من الجليد والغبار والصخر؛ تتبخر قرب الشمس.",
       tempNote: "تتغير حرارته كثيرًا بين اقترابه من الشمس وابتعاده عنها.",

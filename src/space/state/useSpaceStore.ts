@@ -48,14 +48,17 @@ export const useSpaceStore = create<SpaceState>((set) => ({
   reducedMotion: prefersReducedMotion,
 
   setMode: (mode) =>
-    set((s) => ({
-      mode,
-      // switching modes clears the current focus and any running journey
-      selectedBodyId: null,
-      cameraResetToken: s.cameraResetToken + 1,
-      activeJourneyId: mode === "learn" ? s.activeJourneyId : null,
-      journeyStepIndex: mode === "learn" ? s.journeyStepIndex : 0,
-    })),
+    set((s) => {
+      if (mode === s.mode) return s; // re-clicking the active mode is a no-op
+      return {
+        mode,
+        // switching modes clears the current focus and any running journey
+        selectedBodyId: null,
+        cameraResetToken: s.cameraResetToken + 1,
+        activeJourneyId: null,
+        journeyStepIndex: 0,
+      };
+    }),
   selectBody: (id) => set({ selectedBodyId: id }),
   setHovered: (id) => set({ hoveredBodyId: id }),
   toggleOrbits: () => set((s) => ({ showOrbits: !s.showOrbits })),

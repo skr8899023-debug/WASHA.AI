@@ -1,29 +1,44 @@
-import { useEffect, useState } from "react";
-import { WashaDevStudio } from "./dev/WashaDevStudio";
-import { WashaProductionStudio } from "./prod/WashaProductionStudio";
+import { Suspense, lazy, useEffect, useState } from "react";
+
+const WashaDevStudio = lazy(() =>
+  import("./dev/WashaDevStudio").then((m) => ({ default: m.WashaDevStudio })),
+);
+const WashaProductionStudio = lazy(() =>
+  import("./prod/WashaProductionStudio").then((m) => ({ default: m.WashaProductionStudio })),
+);
+const SpaceAtlasApp = lazy(() =>
+  import("./space/SpaceAtlasApp").then((m) => ({ default: m.SpaceAtlasApp })),
+);
 
 export const ROUTES = {
   prod: "/design/washa-ai/app",
   dev: "/design/washa-ai/dev",
 } as const;
 
-function resolveRoute(pathname: string): "dev" | "prod" {
+type Route = "dev" | "prod" | "space";
+
+function resolveRoute(pathname: string): Route {
   if (pathname.startsWith(ROUTES.dev)) return "dev";
-  return "prod";
+  if (pathname.startsWith(ROUTES.prod)) return "prod";
+  return "space";
 }
 
 export default function App() {
-  const [route, setRoute] = useState<"dev" | "prod">(() => resolveRoute(window.location.pathname));
+  const [route, setRoute] = useState<Route>(() => resolveRoute(window.location.pathname));
 
   useEffect(() => {
-    // normalize bare "/" onto the production route without a reload
-    if (!window.location.pathname.startsWith(ROUTES.prod) && !window.location.pathname.startsWith(ROUTES.dev)) {
-      window.history.replaceState(null, "", ROUTES.prod);
-    }
     const onPop = () => setRoute(resolveRoute(window.location.pathname));
     window.addEventListener("popstate", onPop);
     return () => window.removeEventListener("popstate", onPop);
   }, []);
 
-  return route === "dev" ? <WashaDevStudio /> : <WashaProductionStudio />;
+  useEffect(() => {
+    if (route !== "space") document.title = "وشى — استوديو التصميم";
+  }, [route]);
+
+  return (
+    <Suspense fallback={null}>
+      {route === "dev" ? <WashaDevStudio /> : route === "prod" ? <WashaProductionStudio /> : <SpaceAtlasApp />}
+    </Suspense>
+  );
 }

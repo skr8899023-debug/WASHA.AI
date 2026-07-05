@@ -1,9 +1,10 @@
 # WASHA AI — استوديو التصميم
 
-Arabic-first DTF apparel design studio. Two routes ship from one SPA:
+Arabic-first apps. Three routes ship from one SPA:
 
 | Route | What it is |
 | --- | --- |
+| `/` | **أطلس الفضاء التفاعلي** — Arabic 3D educational space atlas (see SPEC.md) |
 | `/design/washa-ai/app` | Production studio — stable, simple flow |
 | `/design/washa-ai/dev` | Dev Studio — the design lab for testing the six-step flow |
 

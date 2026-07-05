@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Puppet Lab — Procedural Creatures</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' fill='%23ffb86b'/%3E%3Ccircle cx='11' cy='14' r='3' fill='%232a1f1a'/%3E%3Ccircle cx='21' cy='14' r='3' fill='%232a1f1a'/%3E%3Ccircle cx='12' cy='13' r='1' fill='%23fff'/%3E%3Ccircle cx='22' cy='13' r='1' fill='%23fff'/%3E%3C/svg%3E"
+    />
+    <style>
+      :root {
+        --ink: #2b2016;
+        --ink-soft: rgba(43, 32, 22, 0.62);
+        --card: rgba(255, 252, 246, 0.82);
+        --card-line: rgba(43, 32, 22, 0.1);
+        --accent: #ff8c42;
+      }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      html, body { height: 100%; overflow: hidden; }
+      body {
+        font-family: "Avenir Next", "Nunito", "Segoe UI", system-ui, sans-serif;
+        background: radial-gradient(120% 90% at 50% 18%, #fdf7ec 0%, #f4e3c8 52%, #e8cfa9 100%);
+        color: var(--ink);
+        -webkit-user-select: none;
+        user-select: none;
+      }
+      #stage { position: fixed; inset: 0; }
+      #stage canvas { display: block; }
+      /* soft vignette for premium depth */
+      #vignette {
+        position: fixed; inset: 0; pointer-events: none;
+        background: radial-gradient(115% 100% at 50% 42%, transparent 58%, rgba(96, 62, 26, 0.16) 100%);
+      }
+      header {
+        position: fixed; top: 22px; left: 26px; pointer-events: none;
+      }
+      header h1 {
+        font-size: 21px; letter-spacing: 0.16em; font-weight: 800; text-transform: uppercase;
+      }
+      header p { font-size: 12.5px; color: var(--ink-soft); margin-top: 4px; letter-spacing: 0.02em; }
+      #stats {
+        position: fixed; left: 26px; bottom: 18px; font-size: 11px; color: var(--ink-soft);
+        font-family: ui-monospace, "SF Mono", Menlo, monospace; pointer-events: none;
+      }
+      /* preset dock */
+      #dock {
+        position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%);
+        display: flex; gap: 8px; padding: 8px;
+        background: var(--card); border: 1px solid var(--card-line); border-radius: 18px;
+        backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+        box-shadow: 0 12px 32px rgba(96, 62, 26, 0.16);
+      }
+      #dock button {
+        border: 0; cursor: pointer; font: inherit; font-size: 13px; font-weight: 700;
+        padding: 9px 14px; border-radius: 12px; background: transparent; color: var(--ink-soft);
+        transition: all 0.15s ease; white-space: nowrap;
+      }
+      #dock button:hover { background: rgba(43, 32, 22, 0.06); color: var(--ink); }
+      #dock button.active { background: var(--ink); color: #fff7ea; }
+      #dock button.dice { font-size: 16px; padding: 7px 12px; }
+      /* JSON panel */
+      #panel {
+        position: fixed; top: 22px; right: 22px; width: 330px; max-width: calc(100vw - 44px);
+        background: var(--card); border: 1px solid var(--card-line); border-radius: 16px;
+        backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+        box-shadow: 0 12px 32px rgba(96, 62, 26, 0.16);
+        overflow: hidden; transition: transform 0.25s ease, opacity 0.25s ease;
+      }
+      #panel.hidden { transform: translateX(24px); opacity: 0; pointer-events: none; }
+      #panel .head {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 12px 14px 8px; font-size: 12px; font-weight: 800; letter-spacing: 0.12em;
+        text-transform: uppercase; color: var(--ink-soft);
+      }
+      #panel textarea {
+        display: block; width: 100%; height: 300px; border: 0; resize: none; outline: none;
+        background: rgba(255, 255, 255, 0.5); padding: 12px 14px;
+        font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 11.5px; line-height: 1.55;
+        color: var(--ink);
+      }
+      #panel .foot { display: flex; gap: 8px; padding: 10px 12px; align-items: center; }
+      #panel .foot button {
+        border: 0; cursor: pointer; font: inherit; font-size: 12.5px; font-weight: 800;
+        padding: 8px 16px; border-radius: 10px; background: var(--ink); color: #fff7ea;
+      }
+      #panel .foot button:hover { background: #47362a; }
+      #jsonError { font-size: 11px; color: #b3401e; flex: 1; line-height: 1.3; }
+      #togglePanel {
+        position: fixed; top: 22px; right: 22px;
+        border: 1px solid var(--card-line); background: var(--card); color: var(--ink-soft);
+        font: inherit; font-size: 12px; font-weight: 800; letter-spacing: 0.08em;
+        padding: 9px 14px; border-radius: 12px; cursor: pointer;
+        backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+        box-shadow: 0 8px 24px rgba(96, 62, 26, 0.12);
+      }
+      #togglePanel.open { opacity: 0; pointer-events: none; }
+      #baking {
+        position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%);
+        font-size: 13px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
+        color: var(--ink-soft); opacity: 0; transition: opacity 0.15s; pointer-events: none;
+      }
+      #baking.on { opacity: 1; }
+      @media (max-width: 720px) {
+        #panel { display: none; }
+        #togglePanel { display: none; }
+        header h1 { font-size: 17px; }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="stage"></div>
+    <div id="vignette"></div>
+    <header>
+      <h1>Puppet Lab</h1>
+      <p>procedural creatures · one seamless soft body · zero assets</p>
+    </header>
+    <div id="baking">summoning…</div>
+    <div id="dock"></div>
+    <button id="togglePanel">{ } JSON</button>
+    <aside id="panel" class="hidden">
+      <div class="head"><span>Character JSON</span><button id="closePanel" style="border:0;background:none;cursor:pointer;font-size:14px;color:inherit">✕</button></div>
+      <textarea id="jsonInput" spellcheck="false"></textarea>
+      <div class="foot">
+        <button id="applyJson">Generate</button>
+        <div id="jsonError"></div>
+      </div>
+    </aside>
+    <div id="stats"></div>
+    <script type="module" src="/src/character-lab/main.ts"></script>
+  </body>
+</html>

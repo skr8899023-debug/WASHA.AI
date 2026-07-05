@@ -6,6 +6,7 @@ Arabic-first DTF apparel design studio. Two routes ship from one SPA:
 | --- | --- |
 | `/design/washa-ai/app` | Production studio — stable, simple flow |
 | `/design/washa-ai/dev` | Dev Studio — the design lab for testing the six-step flow |
+| `/character-lab.html` | Puppet Lab — procedural 3D soft-body character generator (Three.js, standalone entry; see `src/character-lab/README.md`) |
 
 ## Run locally
 

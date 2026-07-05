@@ -2,7 +2,11 @@ import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { ProceduralAnimator, RoamArea } from "./anim/ProceduralAnimator";
 import { RNG } from "./core/rng";
-import { BuiltCharacter, CharacterFactory } from "./factory/CharacterFactory";
+import { CharacterFactory } from "./factory/CharacterFactory";
+import { ConfettiSystem } from "./game/Confetti";
+import { GameDirector } from "./game/GameDirector";
+import { InputPad } from "./game/InputPad";
+import { GameStage, LiveCharacter } from "./game/stage";
 import { PRESETS, randomSpec } from "./presets";
 import { CharacterSpecInput } from "./types";
 
@@ -59,11 +63,6 @@ scene.add(key);
 
 // -------------------------------------------------------------- character mgmt
 
-interface LiveCharacter {
-  built: BuiltCharacter;
-  animator: ProceduralAnimator;
-}
-
 const params = new URLSearchParams(location.search);
 const resolution = Number(params.get("res")) || 64;
 const factory = new CharacterFactory(resolution);
@@ -84,17 +83,26 @@ function clearCast(): void {
   cast.length = 0;
 }
 
-function addCharacter(spec: CharacterSpecInput, area: RoamArea): BuiltCharacter | null {
+function addCharacter(spec: CharacterSpecInput, area: RoamArea): LiveCharacter | null {
   try {
     const built = factory.build(spec);
     scene.add(built.group);
     scene.add(built.shadow);
-    cast.push({ built, animator: new ProceduralAnimator(built, area) });
-    return built;
+    const live: LiveCharacter = { built, animator: new ProceduralAnimator(built, area) };
+    cast.push(live);
+    return live;
   } catch (err) {
     jsonError.textContent = err instanceof Error ? err.message : String(err);
     return null;
   }
+}
+
+function removeCharacter(live: LiveCharacter): void {
+  const i = cast.indexOf(live);
+  if (i >= 0) cast.splice(i, 1);
+  scene.remove(live.built.group);
+  scene.remove(live.built.shadow);
+  live.built.dispose();
 }
 
 function frameCamera(distance: number): void {
@@ -107,7 +115,7 @@ function showSpec(spec: CharacterSpecInput): void {
   requestAnimationFrame(() => {
     clearCast();
     frameCamera(5.4);
-    const built = addCharacter(spec, { x: 0, z: 0, r: 1.7 });
+    const built = addCharacter(spec, { x: 0, z: 0, r: 1.7 })?.built ?? null;
     if (built) {
       jsonInput.value = JSON.stringify(displaySpec(built.spec as unknown as Record<string, unknown>), null, 2);
       jsonError.textContent = "";
@@ -127,14 +135,14 @@ function showParade(): void {
     let ms = 0;
     names.forEach((name, i) => {
       const angle = (i / names.length) * Math.PI * 2;
-      const built = addCharacter(PRESETS[name], {
+      const live = addCharacter(PRESETS[name], {
         x: Math.sin(angle) * 2.1,
         z: Math.cos(angle) * 2.1,
         r: 0.85,
       });
-      if (built) {
-        tris += built.triCount;
-        ms += built.bakeMs;
+      if (live) {
+        tris += live.built.triCount;
+        ms += live.built.bakeMs;
       }
     });
     statsEl.textContent = `${cast.length} puppets · ${tris.toLocaleString()} tris · baked in ${ms.toFixed(0)} ms`;
@@ -192,7 +200,7 @@ function rollRandom(): void {
 }
 
 window.addEventListener("keydown", (e) => {
-  if (e.key === "r" || e.key === "R") rollRandom();
+  if ((e.key === "r" || e.key === "R") && document.body.classList.contains("mode-lab")) rollRandom();
 });
 
 // JSON panel
@@ -216,6 +224,55 @@ document.getElementById("applyJson")!.addEventListener("click", () => {
   }
 });
 
+// ----------------------------------------------------------------- game layer
+
+const confetti = new ConfettiSystem(scene);
+const input = new InputPad(document.getElementById("gm-joy")!, document.getElementById("gm-stick")!);
+
+const gameStage: GameStage = {
+  scene,
+  camera,
+  controls,
+  factory,
+  confetti,
+  add: addCharacter,
+  remove: removeCharacter,
+  clear: clearCast,
+};
+
+function enterLabMode(): void {
+  document.body.classList.remove("mode-game");
+  document.body.classList.add("mode-lab");
+  camera.position.set(3.3, 1.9, 4.7);
+  controls.target.set(0, 0.55, 0);
+  setActiveChip("blobfox");
+  showSpec(PRESETS.blobfox);
+}
+
+function enterGameMode(): void {
+  document.body.classList.remove("mode-lab");
+  document.body.classList.add("mode-game");
+  director.showMenu();
+}
+
+const director = new GameDirector(gameStage, input, enterLabMode);
+
+// QA hook: ?debug=1 exposes the live cast so tests can drive scenarios
+if (params.get("debug") === "1") {
+  (window as unknown as Record<string, unknown>).__puppetlab = { cast, director };
+}
+
+// chip inside the lab dock to jump back into the game
+{
+  const gameChip = document.createElement("button");
+  gameChip.textContent = "🎮 اللعبة";
+  gameChip.addEventListener("click", () => {
+    setActiveChip(null);
+    enterGameMode();
+  });
+  dock.appendChild(gameChip);
+}
+
 // ------------------------------------------------------------------ main loop
 
 window.addEventListener("resize", () => {
@@ -225,23 +282,30 @@ window.addEventListener("resize", () => {
 });
 
 const clock = new THREE.Clock();
+let simTime = 0;
 renderer.setAnimationLoop(() => {
-  const dt = clock.getDelta();
-  const t = clock.elapsedTime;
-  for (const live of cast) live.animator.update(dt, t);
+  const dtReal = Math.min(clock.getDelta(), 0.1);
+  const dtSim = dtReal * director.timeScale;
+  simTime += dtSim;
+  for (const live of cast) live.animator.update(dtSim, simTime);
+  confetti.update(dtSim);
+  director.update(dtReal, dtSim);
   controls.update();
   renderer.render(scene, camera);
 });
 
-// boot
+// boot: ?preset=… or ?mode=lab opens the sandbox, otherwise the game menu
 const bootPreset = params.get("preset");
 if (bootPreset === "all") {
+  document.body.classList.add("mode-lab");
   setActiveChip("__all");
   showParade();
 } else if (bootPreset && PRESETS[bootPreset]) {
+  document.body.classList.add("mode-lab");
   setActiveChip(bootPreset);
   showSpec(PRESETS[bootPreset]);
+} else if (params.get("mode") === "lab") {
+  enterLabMode();
 } else {
-  setActiveChip("blobfox");
-  showSpec(PRESETS.blobfox);
+  enterGameMode();
 }

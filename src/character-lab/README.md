@@ -1,4 +1,4 @@
-# Puppet Lab — procedural soft-body character engine (prototype)
+# Puppet Lab — procedural soft-body character engine + game (prototype)
 
 A fully procedural 3D character generator built on Three.js. Characters are
 cute puppet-like creatures assembled from primitive shapes (spheres, tapered
@@ -6,8 +6,31 @@ capsules, blobs) that render as **one seamless soft body** — no visible seams,
 no external assets, no animation files, one skinned draw call per character.
 
 Open `/character-lab.html` (dev: `npm run dev` → http://localhost:5173/character-lab.html).
-URL params: `?preset=wobbit|blobfox|skitterbug|gumdrop|flapling|all`, `?res=48`
-(marching-cubes grid, default 64).
+It boots into **the game** (Arabic UI); the free-generation sandbox is one
+click away ("وضع المختبر") or via URL params:
+`?mode=lab`, `?preset=wobbit|blobfox|skitterbug|gumdrop|flapling|all`,
+`?res=48` (marching-cubes grid, default 64), `?debug=1` (QA hooks).
+
+## The game: المفقّس (The Hatchery)
+
+Pick a hero → a mystery egg drops into the arena and hatches a brand-new
+procedurally generated creature (the ~150 ms bake hides inside the egg's
+wobble, so hatching feels instant) → chase and catch it before the timer runs
+out → each level hatches a faster stranger. Caught creatures are saved to a
+localStorage album.
+
+- **GameDirector** (`game/GameDirector.ts`) — state machine (menu → select →
+  play → celebrate → results), camera follow, slow-motion on capture, album.
+- **ChaseMission** (`game/ChaseMission.ts`) — egg intro, flee AI, timer, catch
+  detection. Missions share a start/update/cleanup shape so racing, herding
+  and hatch-puzzle modes can slot in next.
+- **InputPad** (`game/InputPad.ts`) — WASD/arrows on desktop, drag joystick on
+  touch, camera-relative.
+- **Confetti + sfx** (`game/Confetti.ts`, `game/sfx.ts`) — celebration
+  particles and a tiny WebAudio synth; still zero asset files.
+- The animator gained **control modes**: `wander` (sandbox), `drive` (player
+  input) and `flee` (panicky escape), plus idle↔gait blending so creatures
+  settle into a breathing stand when they stop.
 
 ## The core trick: bake the fusion, animate the skeleton
 

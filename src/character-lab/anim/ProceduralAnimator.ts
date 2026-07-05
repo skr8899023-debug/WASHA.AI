@@ -51,6 +51,14 @@ export interface RoamArea {
   r: number;
 }
 
+/**
+ * Who decides where the creature goes:
+ *  - wander: autonomous roaming inside the area (the sandbox default)
+ *  - drive:  external input vector (the player)
+ *  - flee:   run away from `fleeFrom` with panicky wiggle (chase targets)
+ */
+export type ControlMode = "wander" | "drive" | "flee";
+
 const _v1 = new THREE.Vector3();
 const _pole = new THREE.Vector3();
 const _yawQ = new THREE.Quaternion();
@@ -60,6 +68,15 @@ const AXIS_Y = new THREE.Vector3(0, 1, 0);
 const AXIS_Z = new THREE.Vector3(0, 0, 1);
 
 export class ProceduralAnimator {
+  /** steering source — see ControlMode */
+  controlMode: ControlMode = "wander";
+  /** desired world-XZ direction when controlMode === "drive" (x → X, y → Z) */
+  readonly driveInput = new THREE.Vector2();
+  /** object to run away from when controlMode === "flee" */
+  fleeFrom: THREE.Object3D | null = null;
+  /** external speed scaling (gameplay balancing) */
+  speedMultiplier = 1;
+
   private tune: PersonalityTuning;
   private mode: "walk" | "hop" | "fly";
   private speed: number;
@@ -71,6 +88,8 @@ export class ProceduralAnimator {
   private phase = 0;
   private seedA: number;
   private seedB: number;
+  /** smoothed 0..1 "how much am I moving" — blends gait ↔ idle */
+  private moveScale = 1;
 
   private blinkTimer: number;
   private blinkPhase = -1; // <0 idle, otherwise 0..1 through a blink
@@ -101,6 +120,24 @@ export class ProceduralAnimator {
     this.seedA = rng.range(0, 100);
     this.seedB = rng.range(0, 100);
     this.blinkTimer = rng.range(1, 3);
+  }
+
+  get baseSpeed(): number {
+    return this.speed;
+  }
+
+  get worldPosition(): THREE.Vector3 {
+    return this.c.group.position;
+  }
+
+  /** teleport (spawns, level layout) — also resets springs so nothing whips */
+  setPlacement(x: number, z: number, heading = this.heading): void {
+    this.pos.set(x, z);
+    this.heading = heading;
+    this.turnRate = 0;
+    this.c.group.position.set(x, this.c.group.position.y, z);
+    this.c.group.quaternion.setFromAxisAngle(AXIS_Y, heading);
+    for (const s of this.c.springs) s.reset();
   }
 
   update(dtIn: number, t: number): void {
@@ -140,23 +177,61 @@ export class ProceduralAnimator {
   // -- steering ---------------------------------------------------------------
 
   private steer(dt: number, t: number): void {
-    let target =
-      Math.sin(t * 0.31 + this.seedA) * 0.55 + Math.sin(t * 0.13 + this.seedB) * 0.45;
+    let target = 0;
+    let desiredScale = 1;
     const dx = this.pos.x - this.area.x;
     const dz = this.pos.y - this.area.z;
     const r = Math.hypot(dx, dz);
-    if (r > this.area.r) {
-      const toCenter = Math.atan2(-dx, -dz);
-      target = wrapAngle(toCenter - this.heading) * 2.2;
+
+    if (this.controlMode === "drive") {
+      const len = this.driveInput.length();
+      if (len > 0.08) {
+        const desired = Math.atan2(this.driveInput.x, this.driveInput.y);
+        target = wrapAngle(desired - this.heading) * 5;
+        desiredScale = Math.min(1, len);
+      } else {
+        desiredScale = 0;
+      }
+      this.turnRate = damp(this.turnRate, target, 8, dt);
+    } else if (this.controlMode === "flee" && this.fleeFrom) {
+      const fx = this.pos.x - this.fleeFrom.position.x;
+      const fz = this.pos.y - this.fleeFrom.position.z;
+      const away = Math.atan2(fx, fz);
+      target = wrapAngle(away - this.heading) * 2.6 + Math.sin(t * 2.1 + this.seedA) * 0.7;
+      desiredScale = 0.86 + 0.18 * Math.sin(t * 3.1 + this.seedB);
+      if (r > this.area.r) {
+        const toCenter = Math.atan2(-dx, -dz);
+        target = wrapAngle(toCenter - this.heading) * 2.6;
+      }
+      this.turnRate = damp(this.turnRate, target, 3.5, dt);
+    } else {
+      target = Math.sin(t * 0.31 + this.seedA) * 0.55 + Math.sin(t * 0.13 + this.seedB) * 0.45;
+      if (r > this.area.r) {
+        const toCenter = Math.atan2(-dx, -dz);
+        target = wrapAngle(toCenter - this.heading) * 2.2;
+      }
+      this.turnRate = damp(this.turnRate, target, 3, dt);
     }
-    this.turnRate = damp(this.turnRate, target, 3, dt);
+
     this.heading += this.turnRate * dt;
+    this.moveScale = damp(this.moveScale, desiredScale, 6, dt);
   }
 
   private advance(dt: number, speedScale = 1): void {
-    const v = this.speed * speedScale;
+    const v = this.speed * this.speedMultiplier * this.moveScale * speedScale;
     this.pos.x += Math.sin(this.heading) * v * dt;
     this.pos.y += Math.cos(this.heading) * v * dt;
+    if (this.controlMode === "drive") {
+      // the player never leaves the arena
+      const dx = this.pos.x - this.area.x;
+      const dz = this.pos.y - this.area.z;
+      const r = Math.hypot(dx, dz);
+      if (r > this.area.r) {
+        const k = this.area.r / r;
+        this.pos.x = this.area.x + dx * k;
+        this.pos.y = this.area.z + dz * k;
+      }
+    }
   }
 
   // -- locomotion modes ---------------------------------------------------------
@@ -169,8 +244,9 @@ export class ProceduralAnimator {
     const scuttle = c.spec.movement === "scuttle";
     const extraBounce = c.spec.movement === "hop" ? 1.35 : 1; // legged "hoppers" bounce hard
 
+    const mv = this.moveScale;
     this.advance(dt);
-    this.phase += dt * this.stepFreq;
+    this.phase += dt * this.stepFreq * Math.max(mv, 0.02);
     const ph = this.phase;
 
     g.position.set(this.pos.x, 0, this.pos.y);
@@ -179,18 +255,18 @@ export class ProceduralAnimator {
 
     const hips = c.bones.hips;
     const rest = hips.userData.restLocal as THREE.Vector3;
-    const bobAmp = (waddle ? 0.02 : 0.03) * tune.amp * extraBounce * c.spec.size;
+    const bobAmp = (waddle ? 0.02 : 0.03) * tune.amp * extraBounce * c.spec.size * mv;
     hips.position.y = rest.y + bobAmp * (0.5 - 0.5 * Math.cos(ph * Math.PI * 4));
-    const roll = (waddle ? 0.14 : scuttle ? 0.02 : 0.05) * tune.amp * Math.sin(ph * Math.PI * 2);
-    const pitch = 0.03 * this.speed;
-    const yawWiggle = scuttle ? 0.05 * Math.sin(ph * Math.PI * 2) : 0;
+    const roll = (waddle ? 0.14 : scuttle ? 0.02 : 0.05) * tune.amp * Math.sin(ph * Math.PI * 2) * mv;
+    const pitch = 0.03 * this.speed * mv;
+    const yawWiggle = scuttle ? 0.05 * Math.sin(ph * Math.PI * 2) * mv : 0;
     hips.quaternion
       .setFromAxisAngle(AXIS_Z, roll)
       .multiply(_tiltQ.setFromAxisAngle(AXIS_X, pitch))
       .multiply(_tiltQ.setFromAxisAngle(AXIS_Y, yawWiggle));
 
     // vertical squash synced with the bounce (volume preserved)
-    const squash = 1 + 0.05 * tune.amp * extraBounce * Math.sin(ph * Math.PI * 4);
+    const squash = 1 + 0.05 * tune.amp * extraBounce * Math.sin(ph * Math.PI * 4) * mv;
     hips.scale.set(1 / Math.sqrt(squash), squash, 1 / Math.sqrt(squash));
 
     // arms swing (or flap excitedly for manic critters)
@@ -199,7 +275,7 @@ export class ProceduralAnimator {
         arm.shoulder.rotation.set(0, 0, -arm.side * (0.25 + 0.12 * Math.sin(t * 3 + this.seedA)));
         arm.fore.rotation.set(0, 0, -arm.side * 0.2);
       } else {
-        const swing = 0.45 * tune.amp * Math.sin(ph * Math.PI * 2 + (arm.side > 0 ? 0 : Math.PI));
+        const swing = 0.45 * tune.amp * mv * Math.sin(ph * Math.PI * 2 + (arm.side > 0 ? 0 : Math.PI));
         arm.shoulder.rotation.set(swing, 0, -arm.side * 0.12);
         arm.fore.rotation.set(swing * 0.5, 0, 0);
       }
@@ -208,8 +284,8 @@ export class ProceduralAnimator {
 
   private solveFeet(t: number): void {
     const c = this.c;
-    const stepH = 0.085 * this.tune.amp * c.spec.size;
-    const stride = Math.min(0.16 * c.spec.size, this.speed * 0.32);
+    const stepH = 0.085 * this.tune.amp * c.spec.size * this.moveScale;
+    const stride = Math.min(0.16 * c.spec.size, this.speed * 0.32) * this.moveScale;
     const bug = c.spec.legs > 4;
 
     for (const leg of c.legs) {
@@ -236,9 +312,9 @@ export class ProceduralAnimator {
     const g = c.group;
     const tune = this.tune;
 
-    this.phase += dt * this.stepFreq;
+    this.phase += dt * this.stepFreq * (0.35 + 0.65 * this.moveScale);
     const hp = this.phase % 1;
-    const H = 0.34 * tune.amp * c.spec.size;
+    const H = 0.34 * tune.amp * c.spec.size * (0.4 + 0.6 * this.moveScale);
 
     const CROUCH = 0.3;
     const PUSH = 0.42;

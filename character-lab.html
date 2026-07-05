@@ -106,6 +106,124 @@
         #togglePanel { display: none; }
         header h1 { font-size: 17px; }
       }
+
+      /* ============================== GAME UI ============================== */
+      /* the lab UI only exists in lab mode; the game overlay only in game mode */
+      body.mode-game #dock,
+      body.mode-game #togglePanel,
+      body.mode-game #panel,
+      body.mode-game #stats,
+      body.mode-game header { display: none; }
+      body.mode-lab #game { display: none; }
+
+      #game { position: fixed; inset: 0; pointer-events: none; font-family: "Segoe UI", Tahoma, system-ui, sans-serif; }
+      #game .hidden { display: none !important; }
+      #game button { pointer-events: auto; }
+
+      .gm-screen {
+        position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+        pointer-events: auto;
+      }
+      .gm-card {
+        background: var(--card); border: 1px solid var(--card-line); border-radius: 24px;
+        backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+        box-shadow: 0 18px 48px rgba(96, 62, 26, 0.22);
+        padding: 30px 34px; text-align: center; max-width: min(520px, calc(100vw - 40px));
+      }
+      .gm-logo { font-size: 40px; font-weight: 900; letter-spacing: 0.02em; }
+      .gm-tag { color: var(--ink-soft); margin: 8px 0 4px; font-size: 15px; }
+      #gm-album-count { color: var(--ink-soft); font-size: 13px; min-height: 20px; margin-bottom: 12px; }
+      .gm-primary {
+        display: block; width: 100%; margin-top: 10px; border: 0; cursor: pointer;
+        font: inherit; font-size: 18px; font-weight: 800; color: #fff7ea;
+        background: linear-gradient(135deg, #ff8c42, #e2622b); border-radius: 16px; padding: 14px 20px;
+        box-shadow: 0 8px 22px rgba(226, 98, 43, 0.35); transition: transform 0.12s ease;
+      }
+      .gm-primary:hover { transform: translateY(-2px); }
+      .gm-primary:disabled { opacity: 0.45; cursor: default; transform: none; }
+      .gm-ghost {
+        display: block; width: 100%; margin-top: 10px; border: 1px solid var(--card-line); cursor: pointer;
+        font: inherit; font-size: 14px; font-weight: 700; color: var(--ink-soft);
+        background: rgba(255, 255, 255, 0.4); border-radius: 14px; padding: 11px 18px;
+      }
+      .gm-ghost:hover { color: var(--ink); background: rgba(255, 255, 255, 0.7); }
+      .gm-row { display: flex; gap: 10px; }
+      .gm-row > * { flex: 1; }
+
+      #gm-select h2 { font-size: 24px; font-weight: 900; margin-bottom: 14px; }
+      #gm-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 14px; }
+      .gm-pcard {
+        border: 2px solid transparent; cursor: pointer; font: inherit;
+        background: rgba(255, 255, 255, 0.55); border-radius: 16px; padding: 12px 8px;
+        display: flex; flex-direction: column; gap: 4px; align-items: center;
+        transition: all 0.12s ease;
+      }
+      .gm-pcard:hover { background: rgba(255, 255, 255, 0.85); }
+      .gm-pcard.active { border-color: #e2622b; background: #fff; box-shadow: 0 6px 18px rgba(226, 98, 43, 0.22); }
+      .gm-pname { font-weight: 800; font-size: 15px; }
+      .gm-pmove { font-size: 11px; color: var(--ink-soft); }
+      .gm-dots { display: flex; gap: 4px; }
+      .gm-dots i, .gm-chip i { width: 12px; height: 12px; border-radius: 50%; display: inline-block; border: 1px solid rgba(43,32,22,.15); }
+
+      #gm-hud { position: absolute; inset: 0; pointer-events: none; }
+      #gm-top {
+        position: absolute; top: 18px; left: 50%; transform: translateX(-50%);
+        display: flex; align-items: center; gap: 12px; direction: rtl;
+        background: var(--card); border: 1px solid var(--card-line); border-radius: 16px;
+        padding: 10px 14px; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+        box-shadow: 0 10px 26px rgba(96, 62, 26, 0.16);
+      }
+      #gm-level { font-weight: 900; font-size: 14px; white-space: nowrap; }
+      #gm-timer { width: min(240px, 40vw); height: 12px; border-radius: 8px; background: rgba(43, 32, 22, 0.12); overflow: hidden; }
+      #gm-timerfill { height: 100%; width: 100%; border-radius: 8px; background: linear-gradient(90deg, #7fc96b, #b8e986); transition: width 0.15s linear; }
+      #gm-timerfill.low { background: linear-gradient(90deg, #e2622b, #ff9d5c); }
+      #gm-quit {
+        border: 0; cursor: pointer; font-size: 15px; font-weight: 800; color: var(--ink-soft);
+        width: 30px; height: 30px; border-radius: 10px; background: rgba(43, 32, 22, 0.08);
+      }
+      #gm-quit:hover { background: rgba(43, 32, 22, 0.16); color: var(--ink); }
+      #gm-hint {
+        position: absolute; bottom: 34px; left: 50%; transform: translateX(-50%);
+        font-size: 14px; font-weight: 700; color: var(--ink-soft); text-align: center;
+        background: var(--card); border: 1px solid var(--card-line); border-radius: 14px; padding: 10px 18px;
+        backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); max-width: calc(100vw - 40px);
+      }
+      #gm-toast {
+        position: absolute; top: 26%; left: 50%; transform: translate(-50%, -50%);
+        font-size: 24px; font-weight: 900; color: var(--ink); text-align: center;
+        background: var(--card); border: 1px solid var(--card-line); border-radius: 20px; padding: 16px 30px;
+        box-shadow: 0 14px 40px rgba(96, 62, 26, 0.25); pointer-events: none; direction: rtl;
+      }
+      #gm-toast.pop { animation: gmpop 0.45s cubic-bezier(0.2, 1.6, 0.4, 1); }
+      @keyframes gmpop {
+        0% { transform: translate(-50%, -50%) scale(0.4); opacity: 0; }
+        100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+      }
+      #gm-res-chips { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin: 12px 0 4px; }
+      .gm-chip {
+        display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700;
+        background: rgba(255, 255, 255, 0.6); border: 1px solid var(--card-line);
+        border-radius: 999px; padding: 5px 11px;
+      }
+      #gm-joy {
+        display: none; position: absolute; bottom: 30px; right: 30px;
+        width: 124px; height: 124px; border-radius: 50%;
+        background: rgba(255, 252, 246, 0.4); border: 1.5px solid rgba(43, 32, 22, 0.18);
+        pointer-events: auto; touch-action: none;
+      }
+      #gm-stick {
+        position: absolute; left: 50%; top: 50%; margin: -27px 0 0 -27px;
+        width: 54px; height: 54px; border-radius: 50%;
+        background: rgba(43, 32, 22, 0.55); pointer-events: none;
+      }
+      @media (pointer: coarse) {
+        #gm-joy:not(.hidden) { display: block; }
+      }
+      @media (max-width: 620px) {
+        #gm-cards { grid-template-columns: repeat(2, 1fr); }
+        .gm-logo { font-size: 30px; }
+        .gm-card { padding: 22px 20px; }
+      }
     </style>
   </head>
   <body>
@@ -127,6 +245,56 @@
       </div>
     </aside>
     <div id="stats"></div>
+
+    <!-- game overlay -->
+    <div id="game" dir="rtl">
+      <div id="gm-menu" class="gm-screen hidden">
+        <div class="gm-card">
+          <div class="gm-logo">🥚 مختبر الدمى</div>
+          <p class="gm-tag">مخلوقات عجيبة تُولد أمام عينيك — أمسكها قبل أن تهرب!</p>
+          <div id="gm-album-count"></div>
+          <button id="gm-start" class="gm-primary">ابدأ اللعب</button>
+          <button id="gm-lab" class="gm-ghost">وضع المختبر — توليد حر</button>
+        </div>
+      </div>
+
+      <div id="gm-select" class="gm-screen hidden">
+        <div class="gm-card">
+          <h2>اختر بطلك</h2>
+          <div id="gm-cards"></div>
+          <div class="gm-row">
+            <button id="gm-go" class="gm-primary" disabled>انطلق!</button>
+            <button id="gm-back" class="gm-ghost">رجوع</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="gm-hud" class="hidden">
+        <div id="gm-top">
+          <div id="gm-level"></div>
+          <div id="gm-timer"><div id="gm-timerfill"></div></div>
+          <button id="gm-quit" title="خروج">✕</button>
+        </div>
+        <div id="gm-hint" class="hidden"></div>
+      </div>
+
+      <div id="gm-toast" class="hidden"></div>
+
+      <div id="gm-results" class="gm-screen hidden">
+        <div class="gm-card">
+          <h2 id="gm-res-title"></h2>
+          <p class="gm-tag" id="gm-res-sub"></p>
+          <div id="gm-res-chips"></div>
+          <div class="gm-row">
+            <button id="gm-retry" class="gm-primary">حاول مجدداً</button>
+            <button id="gm-menu2" class="gm-ghost">القائمة</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="gm-joy" class="hidden"><div id="gm-stick"></div></div>
+    </div>
+
     <script type="module" src="/src/character-lab/main.ts"></script>
   </body>
 </html>

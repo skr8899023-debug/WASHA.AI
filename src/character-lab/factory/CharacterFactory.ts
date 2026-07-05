@@ -239,7 +239,13 @@ export class CharacterFactory {
       triCount,
       bakeMs,
       dispose() {
-        geometry.dispose();
+        group.traverse((o) => {
+          const m = o as THREE.Mesh;
+          if (m.isMesh) {
+            m.geometry.dispose();
+            if (m.material !== material) (m.material as THREE.Material).dispose();
+          }
+        });
         material.dispose();
         (shadow.material as THREE.Material).dispose();
         shadow.geometry.dispose();

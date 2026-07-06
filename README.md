@@ -1,11 +1,25 @@
-# WASHA AI — استوديو التصميم
+# WASHA.AI monorepo SPA
 
-Arabic-first DTF apparel design studio. Two routes ship from one SPA:
+One SPA, three routes:
 
 | Route | What it is |
 | --- | --- |
-| `/design/washa-ai/app` | Production studio — stable, simple flow |
-| `/design/washa-ai/dev` | Dev Studio — the design lab for testing the six-step flow |
+| `/` | **مختبر الكيمياء التفاعلي** — Arabic 3D interactive chemistry learning lab |
+| `/design/washa-ai/app` | WASHA production studio — stable, simple flow |
+| `/design/washa-ai/dev` | WASHA Dev Studio — the design lab for testing the six-step flow |
+
+## مختبر الكيمياء التفاعلي (chemistry lab, at `/`)
+
+Arabic-first RTL educational app for middle/secondary students, built with
+three.js / @react-three/fiber. Six modes: استكشف (3D lab with atoms, molecules,
+and lab tools), تعلّم (9 guided journeys), التجارب (7 step-by-step simulations),
+اختبر نفسك (quiz), قارن (comparison tool), السلامة (safety cards). Content is
+data-driven under `src/chem/data/`; docs in `SPEC.md`, `CONTENT_MODEL.md`,
+`CONTENT_SOURCES.md`, `PROGRESS.md`.
+
+# WASHA AI — استوديو التصميم
+
+Arabic-first DTF apparel design studio.
 
 ## Run locally
 
@@ -16,8 +30,9 @@ npm run dev
 
 Then open:
 
-- Production: http://localhost:5173/design/washa-ai/app
-- Dev Studio: http://localhost:5173/design/washa-ai/dev
+- Chemistry lab: http://localhost:5173/
+- WASHA production: http://localhost:5173/design/washa-ai/app
+- WASHA Dev Studio: http://localhost:5173/design/washa-ai/dev
 
 `npm run build` type-checks and produces `dist/`; `npm run preview` serves the build.
 

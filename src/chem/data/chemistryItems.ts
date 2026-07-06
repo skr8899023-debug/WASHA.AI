@@ -486,7 +486,7 @@ const elements: ChemistryItem[] = [
     relatedExperiments: [],
     safetyNotes: "آمن تمامًا في صورته الفلزية.",
     sourceNotes: SRC_SCHOOL,
-    visual: { kind: "atom", color: "#fbbf24", shells: [2, 8, 18, 18] },
+    visual: { kind: "atom", color: "#fbbf24", shells: [2, 8, 18, 32, 18, 1] },
     lastReviewed: REVIEWED,
   },
 ];

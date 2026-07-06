@@ -1,6 +1,6 @@
 import { itemsById } from "../../data/chemistryItems";
 import { experimentsById } from "../../data/experiments";
-import { CATEGORY_LABELS } from "../../types";
+import { CATEGORY_LABELS, itemBadge } from "../../types";
 import { useChemistryStore } from "../../state/useChemistryStore";
 
 /** بطاقة المعرفة: كل ما يحتاجه الطالب عن العنصر المحدد */
@@ -13,8 +13,7 @@ export function KnowledgePanel() {
   const item = itemsById[selectedId];
   if (!item) return null;
 
-  const badge =
-    item.symbolOrFormula ?? (item.visual.kind === "concept" ? item.visual.icon : item.englishName.slice(0, 2));
+  const badge = itemBadge(item);
 
   return (
     <aside className="chem-knowledge" aria-label={`بطاقة ${item.arabicName}`}>

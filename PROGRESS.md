@@ -32,6 +32,26 @@ self-hosted Tajawal font, plain CSS.
 - Screenshots reviewed: default lab view, focused molecule view, neutralization experiment at
   pH 7 — visual quality matches SPEC direction.
 
+## Quality review pass (2026-07-06)
+Strict review against Arabic UX, scientific correctness, learning value, visuals, 3D
+interactivity, lessons, experiments, quiz, build, and performance. Issues found and fixed:
+
+1. **Scientific correctness** — gold's electron shells were `[2,8,18,18]` (46 e⁻); corrected to
+   the real configuration `[2,8,18,32,18,1]` (79 e⁻).
+2. **Performance** — the 3D canvas kept its render loop running while hidden behind other modes;
+   now `frameloop="never"` outside استكشف, resuming automatically on return.
+3. **3D interactivity** — the "التسميات" toggle only hid the selected item's label; now it
+   controls hover labels too, so the toggle has clear, observable behavior.
+4. **UI quality** — knowledge-panel badge for lab tools fell back to English letter fragments
+   ("Be", "Te"); added `TOOL_ICONS`/`itemBadge()` so tools show proper icons in the badge and
+   the sidebar browser.
+5. **Feedback semantics** — correct quiz answers now use an emerald success callout
+   (`.chem-callout.ok`) instead of the violet "thinking" style.
+6. **Docs** — README updated to document all three routes (chemistry lab at `/` + WASHA routes).
+
+Re-verified after fixes: `npm run build` clean; full Playwright e2e suite (13 checks) passed
+with zero console errors.
+
 ## Known limitations / future ideas
 - Chemistry chunk is ~948 kB minified (three.js); it is lazy-loaded so WASHA routes don't pay
   for it. Could split further if needed.

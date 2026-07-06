@@ -100,3 +100,22 @@ export const CATEGORY_LABELS: Record<Category, string> = {
   compound: "مركب",
   tool: "أداة مختبر",
 };
+
+export const TOOL_ICONS: Record<ToolKind, string> = {
+  beaker: "🧪",
+  testTube: "🧪",
+  flask: "⚗",
+  dropper: "💧",
+  scale: "⚖",
+  burner: "🔥",
+  phStrip: "🌡",
+  goggles: "🥽",
+  gloves: "🧤",
+};
+
+/** أيقونة/رمز موحّد لعرض أي عنصر محتوى في الشارات والقوائم */
+export function itemBadge(item: { symbolOrFormula?: string; visual: Visual }): string {
+  if (item.visual.kind === "concept") return item.visual.icon;
+  if (item.visual.kind === "tool") return TOOL_ICONS[item.visual.tool];
+  return item.symbolOrFormula ?? "•";
+}

@@ -53,7 +53,7 @@ function SceneItem({ item, labelY }: { item: ChemistryItem; labelY: number }) {
           {v.kind === "tool" && <ToolModel tool={v.tool} highlighted={highlighted} />}
         </group>
       </Float>
-      {(hovered || (labelsVisible && selected)) && (
+      {labelsVisible && (hovered || selected) && (
         <FloatingLabel
           arabicName={item.arabicName}
           detail={item.symbolOrFormula ?? item.englishName}
@@ -67,12 +67,15 @@ function SceneItem({ item, labelY }: { item: ChemistryItem; labelY: number }) {
 /** المشهد الرئيسي: قوس العناصر، صف المركبات، وطاولة الأدوات */
 export function ChemistryScene() {
   const selectItem = useChemistryStore((s) => s.selectItem);
+  const mode = useChemistryStore((s) => s.mode);
   return (
     <Canvas
       dpr={[1, 2]}
       camera={{ position: DEFAULT_CAMERA_POS, fov: 45 }}
       onPointerMissed={() => selectItem(null)}
       gl={{ antialias: true }}
+      // أوقف حلقة الرسم عندما يكون المشهد مخفيًا خلف الأوضاع الأخرى
+      frameloop={mode === "explore" ? "always" : "never"}
     >
       <color attach="background" args={["#060b16"]} />
       <Suspense fallback={null}>

@@ -101,7 +101,7 @@ export function QuizPanel() {
             );
           })}
           {picked !== null && (
-            <div className={`chem-callout chem-quiz-explain ${picked === q.correctIndex ? "think" : "warn"}`}>
+            <div className={`chem-callout chem-quiz-explain ${picked === q.correctIndex ? "ok" : "warn"}`}>
               {picked === q.correctIndex ? "🎉 إجابة صحيحة! " : "💡 "}
               {q.explanation}
             </div>

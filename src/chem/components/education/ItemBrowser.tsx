@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { chemistryItems } from "../../data/chemistryItems";
 import type { Category } from "../../types";
-import { CATEGORY_LABELS } from "../../types";
+import { CATEGORY_LABELS, itemBadge } from "../../types";
 import { useChemistryStore } from "../../state/useChemistryStore";
 
 const FILTERS: { key: Category | "all"; label: string }[] = [
@@ -45,7 +45,7 @@ export function ItemBrowser() {
             onClick={() => selectItem(item.id)}
           >
             <span className="chem-item-dot" style={{ color: item.visual.kind === "concept" ? item.visual.color : undefined }}>
-              {item.visual.kind === "concept" ? item.visual.icon : (item.symbolOrFormula ?? "⚙")}
+              {itemBadge(item)}
             </span>
             <span>
               <b>{item.arabicName}</b>

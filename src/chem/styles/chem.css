@@ -455,6 +455,12 @@
   color: #ddd3fe;
 }
 
+.chem-callout.ok {
+  background: rgba(52, 211, 153, 0.08);
+  border-color: rgba(52, 211, 153, 0.28);
+  color: #baf3dd;
+}
+
 .chem-exp-link {
   display: inline-flex;
   align-items: center;

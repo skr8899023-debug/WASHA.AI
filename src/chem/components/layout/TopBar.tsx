@@ -5,6 +5,7 @@ const MODES: { key: Mode; label: string }[] = [
   { key: "explore", label: "🔬 استكشف" },
   { key: "learn", label: "🧭 تعلّم" },
   { key: "experiments", label: "⚗ التجارب" },
+  { key: "reactions", label: "🧪 التفاعلات" },
   { key: "quiz", label: "📝 اختبر نفسك" },
   { key: "compare", label: "⚖ قارن" },
   { key: "safety", label: "🥽 السلامة" },

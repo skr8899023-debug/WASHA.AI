@@ -8,6 +8,7 @@ import { KnowledgePanel } from "./components/education/KnowledgePanel";
 import { ItemBrowser } from "./components/education/ItemBrowser";
 import { LessonPanel } from "./components/education/LessonPanel";
 import { ExperimentPanel } from "./components/education/ExperimentPanel";
+import { ReactionWorkbench } from "./components/reactions/ReactionWorkbench";
 import { QuizPanel } from "./components/education/QuizPanel";
 import { ComparePanel } from "./components/education/ComparePanel";
 import { SafetyPanel } from "./components/education/SafetyPanel";
@@ -34,6 +35,7 @@ export default function ChemistryApp() {
         )}
         {mode === "learn" && <LessonPanel />}
         {mode === "experiments" && <ExperimentPanel />}
+        {mode === "reactions" && <ReactionWorkbench />}
         {mode === "quiz" && <QuizPanel />}
         {mode === "compare" && <ComparePanel />}
         {mode === "safety" && <SafetyPanel />}

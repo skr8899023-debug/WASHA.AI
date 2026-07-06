@@ -52,6 +52,35 @@ interactivity, lessons, experiments, quiz, build, and performance. Issues found 
 Re-verified after fixes: `npm run build` clean; full Playwright e2e suite (13 checks) passed
 with zero console errors.
 
+## Module added: منطقة التفاعلات الكيميائية (2026-07-06)
+New premium mode `reactions` in the existing app (no rebuild). An immersive Arabic RTL 3D
+reaction workbench, fully data-driven.
+
+- **3D mixing scene** (`components/three/MixingScene.tsx`): glass beaker with animated liquid
+  level + smooth color blending (damped lerp), rising bubbles, foam, settling precipitate
+  particles, steam/vapor puffs, stir rod + swirl, burner flame + glow on heat, pour stream on
+  add, premium multi-light rig, auto-orbit camera. Own Canvas, mounted only in this mode.
+- **Reaction engine** (`reactions/reactionEngine.ts`): matches the current chemical set +
+  conditions (heat/stir) against the reaction table, prefers the most condition-specific match,
+  and falls back to explained "no reaction / non-reacting mixture" outcomes. Color blending for
+  pre-reaction mixtures.
+- **Data-driven content**: `data/chemicals.ts` (10 safe classroom chemicals) and
+  `data/reactions.ts` (13 seeded reactions). Outcomes cover none, color, gas, precipitate,
+  pH shift, temp change, dissolution, crystallization, neutralization, evaporation, physical.
+  Every result answers the six Arabic questions (ماذا/لماذا/النوع/الدليل/المعادلة/السلامة).
+- **UI** (`components/reactions/`): `ChemicalShelf` (click to pour), `ReactionWorkbench`
+  (state + layout + heat/stir/clear + contents chips), `ReactionResultPanel` (six-section result
+  + pH bar + "عرض تعليمي فقط" badge), `ReactionSafetyPanel`.
+- **Seeded reactions**: حمض+قاعدة (تعادل)، حمض/خل+كربونات (غاز)، نترات الفضة+كلوريد الصوديوم
+  (راسب)، ملح+ماء (ذوبان، وتبلور عند التسخين)، الكاشف مع حمض/قاعدة/ماء (تغيّر لوني + pH)،
+  أكسدة الحديد (عرض تعليمي فقط)، تسخين الماء (تبخّر)، وزيت+ماء (لا تفاعل).
+- **Safety**: only diluted/safe classroom quantities; no hazardous synthesis or procedural
+  recipes; slow/unsafe-to-run reactions (rusting) are conceptual and labelled «عرض تعليمي فقط».
+
+Verified: `npm run build` clean; Playwright e2e extended with three reaction flows
+(acid+base neutralization, water+heat evaporation, oil+water non-reacting) — full suite (16
+checks) passes with zero console errors.
+
 ## Known limitations / future ideas
 - Chemistry chunk is ~948 kB minified (three.js); it is lazy-loaded so WASHA routes don't pay
   for it. Could split further if needed.

@@ -1113,6 +1113,404 @@ button.chem-card:hover {
   pointer-events: none;
 }
 
+/* ============ منطقة التفاعلات الكيميائية ============ */
+.rxn-page {
+  padding: 18px clamp(12px, 3vw, 34px) 30px;
+}
+
+.rxn-layout {
+  max-width: 1320px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 244px minmax(0, 1fr) 384px;
+  gap: 14px;
+  align-items: stretch;
+}
+
+/* رفّ المواد */
+.rxn-shelf {
+  background: var(--panel);
+  border: 1px solid var(--stroke);
+  border-radius: var(--radius);
+  backdrop-filter: blur(16px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  max-height: calc(100vh - 150px);
+}
+
+.rxn-shelf-head {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--stroke-soft);
+}
+.rxn-shelf-head b {
+  font-size: 14px;
+  font-weight: 800;
+}
+.rxn-shelf-head span {
+  display: block;
+  font-size: 11px;
+  color: var(--text-2);
+  margin-top: 2px;
+}
+
+.rxn-shelf-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.rxn-chem-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--stroke-soft);
+  background: var(--panel-soft);
+  text-align: start;
+  transition: all 0.16s ease;
+  position: relative;
+}
+.rxn-chem-card:hover:not(:disabled) {
+  border-color: rgba(34, 211, 238, 0.45);
+  transform: translateX(-3px);
+}
+.rxn-chem-card:disabled {
+  cursor: default;
+}
+.rxn-chem-card.in {
+  border-color: rgba(52, 211, 153, 0.5);
+  background: rgba(52, 211, 153, 0.08);
+}
+
+.rxn-chem-swatch {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  border-radius: 9px;
+  display: grid;
+  place-items: center;
+  font-size: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.3);
+}
+.rxn-chem-meta b {
+  display: block;
+  font-size: 12.5px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+.rxn-chem-meta small {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin-top: 2px;
+}
+.rxn-kind {
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--cyan);
+  background: rgba(34, 211, 238, 0.12);
+  padding: 1px 7px;
+  border-radius: 999px;
+}
+.rxn-formula {
+  font-size: 11px;
+  color: var(--text-2);
+  direction: ltr;
+}
+.rxn-chem-check {
+  margin-inline-start: auto;
+  color: var(--emerald);
+  font-weight: 800;
+}
+
+/* المنصة ثلاثية الأبعاد */
+.rxn-stage-col {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+.rxn-stage {
+  position: relative;
+  flex: 1;
+  min-height: 340px;
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid var(--stroke);
+  background: radial-gradient(700px 500px at 50% 0%, rgba(34, 211, 238, 0.1), transparent 70%), #060b16;
+  box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.5);
+}
+
+.rxn-stage-badge {
+  position: absolute;
+  top: 12px;
+  inset-inline-start: 14px;
+  font-size: 12px;
+  font-weight: 800;
+  color: #d6fbff;
+  background: rgba(8, 14, 27, 0.7);
+  border: 1px solid var(--stroke-soft);
+  padding: 5px 12px;
+  border-radius: 999px;
+  backdrop-filter: blur(8px);
+  pointer-events: none;
+}
+
+.rxn-contents {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  background: var(--panel);
+  border: 1px solid var(--stroke-soft);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+}
+.rxn-contents-label {
+  font-size: 12.5px;
+  font-weight: 800;
+  color: var(--text-1);
+}
+.rxn-empty {
+  font-size: 12.5px;
+  color: var(--text-2);
+}
+.rxn-content-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-0);
+  border: 1px solid var(--stroke);
+  background: var(--panel-soft);
+  transition: all 0.15s ease;
+}
+.rxn-content-chip:hover {
+  border-color: rgba(248, 113, 113, 0.5);
+}
+.rxn-chip-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+.rxn-chip-x {
+  font-size: 10px;
+  color: var(--text-2);
+}
+
+.rxn-controls {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.rxn-tool {
+  flex: 1;
+  min-width: 120px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 13.5px;
+  font-weight: 800;
+  color: var(--text-1);
+  border: 1px solid var(--stroke-soft);
+  background: var(--panel);
+  transition: all 0.18s ease;
+}
+.rxn-tool:hover {
+  color: var(--text-0);
+  border-color: var(--stroke);
+}
+.rxn-tool.on {
+  color: #04121b;
+  background: linear-gradient(135deg, var(--amber), #f97316);
+  border-color: transparent;
+  box-shadow: 0 4px 16px rgba(251, 146, 60, 0.35);
+}
+.rxn-tool.danger:hover {
+  color: var(--red);
+  border-color: rgba(248, 113, 113, 0.45);
+}
+
+/* لوحة النتيجة والسلامة */
+.rxn-side {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: calc(100vh - 150px);
+  overflow-y: auto;
+}
+
+.rxn-result {
+  background: var(--panel);
+  border: 1px solid var(--stroke);
+  border-radius: var(--radius);
+  backdrop-filter: blur(16px);
+  overflow: hidden;
+}
+
+.rxn-result-head {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--stroke-soft);
+  border-inline-start: 3px solid var(--accent, var(--cyan));
+}
+.rxn-result-head h3 {
+  margin: 8px 0 0;
+  font-size: 17px;
+  font-weight: 800;
+}
+.rxn-outcome-badge {
+  display: inline-block;
+  padding: 3px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+  border: 1px solid;
+}
+.rxn-concept-badge {
+  display: inline-block;
+  margin-inline-start: 8px;
+  padding: 3px 12px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 800;
+  color: var(--amber);
+  background: rgba(251, 191, 36, 0.12);
+  border: 1px solid rgba(251, 191, 36, 0.35);
+}
+
+.rxn-ph {
+  padding: 12px 16px 4px;
+}
+.rxn-ph-bar {
+  display: grid;
+  grid-template-columns: repeat(15, 1fr);
+  gap: 2px;
+  height: 14px;
+}
+.rxn-ph-bar span {
+  border-radius: 2px;
+}
+.rxn-ph-label {
+  font-size: 12px;
+  color: var(--text-1);
+  margin-top: 6px;
+}
+.rxn-ph-label b {
+  color: #d6fbff;
+}
+
+.rxn-result-body {
+  padding: 10px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+}
+.rxn-result-row .rxn-result-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  font-weight: 800;
+  color: var(--cyan);
+  margin-bottom: 3px;
+}
+.rxn-result-row p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--text-1);
+}
+.rxn-result-row.ltr p {
+  direction: ltr;
+  text-align: end;
+  font-weight: 700;
+  color: #d6fbff;
+}
+.rxn-result-row.safety p {
+  color: #fecaca;
+  background: rgba(248, 113, 113, 0.07);
+  border: 1px solid rgba(248, 113, 113, 0.2);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+}
+
+.rxn-safety {
+  background: var(--panel);
+  border: 1px solid rgba(251, 191, 36, 0.25);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+}
+.rxn-safety-head {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--amber);
+  margin-bottom: 8px;
+}
+.rxn-safety ul {
+  margin: 0;
+  padding-inline-start: 18px;
+  font-size: 12.5px;
+  line-height: 1.9;
+  color: var(--text-1);
+}
+.rxn-safety-note {
+  margin: 10px 0 0;
+  font-size: 11.5px;
+  line-height: 1.7;
+  color: var(--text-2);
+  border-top: 1px solid var(--stroke-soft);
+  padding-top: 8px;
+}
+.rxn-safety-note b {
+  color: var(--amber);
+}
+
+@media (max-width: 1100px) {
+  .rxn-layout {
+    grid-template-columns: 220px minmax(0, 1fr);
+  }
+  .rxn-side {
+    grid-column: 1 / -1;
+    max-height: none;
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  .rxn-result {
+    flex: 1;
+    min-width: 320px;
+  }
+  .rxn-safety {
+    flex: 1;
+    min-width: 240px;
+  }
+}
+
+@media (max-width: 760px) {
+  .rxn-layout {
+    grid-template-columns: 1fr;
+  }
+  .rxn-shelf {
+    max-height: 260px;
+  }
+  .rxn-stage {
+    min-height: 320px;
+  }
+}
+
 /* ============ Responsive ============ */
 @media (max-width: 980px) {
   .chem-browser {
